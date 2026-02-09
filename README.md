@@ -19,27 +19,6 @@ LocalStorage – Data persistence
 
 ⚠️ No frameworks or libraries were used.
 
-📂 Project Folder Structure
-Smart-Study-Planner/
-│
-├── assets/
-│   └── screenshots/
-│
-├── scripts/
-│   ├── app.js
-│   ├── subjects.js
-│   ├── tasks.js
-│   ├── schedule.js
-│   ├── analytics.js
-│   └── storage.js
-│
-├── styles/
-│   └── main.css
-│
-├── index.html
-└── README.md
-
-
 ✨ Features Implemented
 📊 Dashboard
 Displays total subjects
