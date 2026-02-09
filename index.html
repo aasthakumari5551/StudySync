@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Study Planner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <h1>Smart Study Planner</h1>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <h2>Plan Smart. Study Better.</h2>
+    <p>
+        Manage subjects, schedules, tasks, and track your performance
+        with smart progress analytics.
+    </p>
+</section>
+
+<!-- MENU -->
+<section class="menu-section">
+    <div class="menu-card blue" onclick="showSection('dashboard')">Dashboard</div>
+    <div class="menu-card green" onclick="showSection('subjects')">Subjects</div>
+    <div class="menu-card purple" onclick="showSection('schedule')">Schedule</div>
+    <div class="menu-card orange" onclick="showSection('tasks')">Tasks</div>
+    <div class="menu-card teal" onclick="showSection('progress')">Progress</div>
+    <div class="menu-card gray" onclick="showSection('settings')">Settings</div>
+</section>
+
+<main class="content">
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="section">
+    <h3>Dashboard Overview</h3>
+
+    <div class="card-grid">
+        <div class="card accent-blue">
+            <span>Total Subjects</span>
+            <strong id="totalSubjects">0</strong>
+        </div>
+        <div class="card accent-orange">
+            <span>Pending Tasks</span>
+            <strong id="pendingTasks">0</strong>
+        </div>
+    </div>
+
+    <div class="card accent-purple">
+        <h4>Today's Schedule</h4>
+        <ul id="todaySchedule"></ul>
+    </div>
+</section>
+
+<!-- SUBJECTS -->
+<section id="subjects" class="section hidden">
+    <h3>Subject Management</h3>
+
+    <div class="card accent-green">
+        <div class="form-group">
+            <input type="text" id="subjectName" placeholder="Subject name">
+            <select id="subjectPriority">
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+            </select>
+            <button onclick="addSubject()">Add</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <ul id="subjectList"></ul>
+    </div>
+</section>
+
+<!-- SCHEDULE -->
+<section id="schedule" class="section hidden">
+    <h3>Schedule Planner</h3>
+
+    <div class="card accent-purple">
+        <div class="form-group">
+            <input type="text" id="scheduleSubject" placeholder="Subject">
+            <input type="time" id="startTime">
+            <input type="time" id="endTime">
+            <button onclick="addSchedule()">Add</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <ul id="scheduleList"></ul>
+    </div>
+</section>
+
+<!-- TASKS -->
+<section id="tasks" class="section hidden">
+    <h3>Task Manager</h3>
+
+    <div class="card accent-orange">
+        <div class="form-group">
+            <input type="text" id="taskName" placeholder="Task name">
+            <input type="date" id="taskDate">
+            <button onclick="addTask()">Add</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <ul id="taskList"></ul>
+    </div>
+</section>
+
+<!-- PROGRESS ANALYTICS -->
+<section id="progress" class="section hidden">
+    <h3>Progress Analytics</h3>
+
+    <div class="card-grid">
+        <div class="card accent-teal">
+            <span>Completed Tasks</span>
+            <strong id="completedCount">0</strong>
+        </div>
+        <div class="card accent-teal">
+            <span>Completion</span>
+            <strong id="completionPercent">0%</strong>
+        </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="card accent-teal">
+        <h4>Task Completion Chart</h4>
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <p id="progressInsight"></p>
+    </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="settings" class="section hidden">
+    <h3>Settings</h3>
+    <div class="card accent-gray">
+        <button onclick="resetData()">Reset Data</button>
+        <button onclick="exportData()">Export Data</button>
+    </div>
+</section>
+
+</main>
+
+<!-- SCRIPTS -->
+<script src="scripts/storage.js"></script>
+<script src="scripts/subjects.js"></script>
+<script src="scripts/tasks.js"></script>
+<script src="scripts/schedule.js"></script>
+<script src="scripts/analytics.js"></script>
+<script src="scripts/app.js"></script>
+
+</body>
+</html>
