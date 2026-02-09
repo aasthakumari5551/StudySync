@@ -67,6 +67,9 @@ No server or installation required.
 📸 Screenshots
 Screenshots of the application UI are available in the assets/screenshots folder.
 
+## 🚀 Live Demo
+🔗 https://study-sync-new.vercel.app/
+
 📚 Learning Outcomes
 Understanding of frontend application structure
 Practical use of JavaScript logic
@@ -84,3 +87,4 @@ Pure HTML, CSS, and JavaScript
 👤 Author
 Smart Study Planner
 Aastha Kumari
+
