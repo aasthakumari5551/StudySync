@@ -1,108 +1,151 @@
-// schedule.js
-// Handles study schedule logic
+/* ===== ELEMENTS ===== */
+const scheduleForm = document.getElementById("scheduleForm");
+const scheduleList = document.getElementById("scheduleList");
 
-let schedules = [];
+let currentView = "weekly";
 
-// Add schedule with conflict check
-function addSchedule() {
-    const subjectInput = document.getElementById("scheduleSubject");
-    const startInput = document.getElementById("startTime");
-    const endInput = document.getElementById("endTime");
-
-    const subject = subjectInput.value.trim();
-    const startTime = startInput.value;
-    const endTime = endInput.value;
-
-    if (!subject || !startTime || !endTime) {
-        alert("Please fill all fields");
-        return;
-    }
-
-    if (startTime >= endTime) {
-        alert("End time must be after start time");
-        return;
-    }
-
-    // Conflict detection
-    const conflict = schedules.some(s =>
-        startTime < s.end && endTime > s.start
-    );
-
-    if (conflict) {
-        alert("Schedule conflict detected!");
-        return;
-    }
-
-    const schedule = {
-        id: Date.now(),
-        subject,
-        start: startTime,
-        end: endTime
-    };
-
-    schedules.push(schedule);
-
-    subjectInput.value = "";
-    startInput.value = "";
-    endInput.value = "";
-
-    saveSchedule();
-    renderSchedule();
-    updateTodaySchedule();
-}
-
-// Render schedules
-function renderSchedule() {
-    const list = document.getElementById("scheduleList");
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    schedules.forEach(item => {
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <span>${item.subject} (${item.start} - ${item.end})</span>
-            <button onclick="deleteSchedule(${item.id})">Delete</button>
-        `;
-
-        list.appendChild(li);
-    });
-}
-
-// Delete schedule
-function deleteSchedule(id) {
-    schedules = schedules.filter(item => item.id !== id);
-    saveSchedule();
-    renderSchedule();
-    updateTodaySchedule();
-}
-
-// Save to LocalStorage
-function saveSchedule() {
-    localStorage.setItem("schedule", JSON.stringify(schedules));
-}
-
-// Load from LocalStorage
+/* ===== LOAD SCHEDULE ===== */
 function loadSchedule() {
-    const data = localStorage.getItem("schedule");
-    if (data) {
-        schedules = JSON.parse(data);
-        renderSchedule();
-        updateTodaySchedule();
+    const schedule = getSchedule();
+    scheduleList.innerHTML = "";
+
+    if (!schedule.length) {
+        scheduleList.innerHTML = `<p class="empty-msg">No schedule added yet</p>`;
+        return updateDashboardSchedule();
     }
+
+    currentView === "weekly"
+        ? displayWeeklyView(schedule)
+        : displayDailyView(schedule);
+
+    updateDashboardSchedule();
 }
 
-// Update dashboard schedule
-function updateTodaySchedule() {
-    const list = document.getElementById("todaySchedule");
-    if (!list) return;
+/* ===== WEEKLY VIEW ===== */
+function displayWeeklyView(schedule) {
+    const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+    scheduleList.innerHTML = `<h3 class="schedule-title">Weekly Timetable</h3>`;
 
-    list.innerHTML = "";
+    days.forEach(day => {
+        const list = schedule.filter(s => s.day === day)
+            .sort((a,b) => a.startTime.localeCompare(b.startTime));
 
-    schedules.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `${item.subject}: ${item.start} - ${item.end}`;
-        list.appendChild(li);
+        if (!list.length) return;
+
+        const section = document.createElement("div");
+        section.innerHTML = `<h4 class="day-title">${day}</h4>`;
+
+        list.forEach(item =>
+            section.appendChild(createScheduleCard(item, schedule.indexOf(item)))
+        );
+
+        scheduleList.appendChild(section);
     });
+}
+
+/* ===== DAILY VIEW ===== */
+function displayDailyView(schedule) {
+    const today = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+    const todayList = schedule.filter(s => s.day === today)
+        .sort((a,b) => a.startTime.localeCompare(b.startTime));
+
+    scheduleList.innerHTML = `<h3 class="schedule-title">Today (${today})</h3>`;
+
+    if (!todayList.length)
+        return scheduleList.innerHTML += `<p class="empty-msg">No classes today</p>`;
+
+    todayList.forEach(item =>
+        scheduleList.appendChild(createScheduleCard(item, schedule.indexOf(item)))
+    );
+}
+
+/* ===== CREATE CARD ===== */
+function createScheduleCard(item, index) {
+    const card = document.createElement("div");
+    card.className = "schedule-card";
+
+    card.innerHTML = `
+        <div>
+            <h4>${item.subject}</h4>
+            <small>${formatTime(item.startTime)} - ${formatTime(item.endTime)} • ${item.day}</small>
+        </div>
+        <div class="card-actions">
+            <button onclick="editSchedule(${index})">Edit</button>
+            <button class="danger" onclick="deleteSchedule(${index})">Delete</button>
+        </div>
+    `;
+    return card;
+}
+
+/* ===== HELPERS ===== */
+function formatTime(t) {
+    let [h,m] = t.split(":");
+    h = +h;
+    return `${h % 12 || 12}:${m} ${h >= 12 ? "PM" : "AM"}`;
+}
+
+/* ===== SWITCH VIEW ===== */
+function switchView(view) {
+    currentView = view;
+    document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+    loadSchedule();
+}
+
+/* ===== ADD ===== */
+scheduleForm.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const day = scheduleDay.value;
+    const subject = scheduleSubject.value.trim();
+    const startTime = scheduleStartTime.value;
+    const endTime = scheduleEndTime.value;
+
+    if (!subject || startTime >= endTime)
+        return alert("Invalid time range");
+
+    const schedule = getSchedule();
+    if (schedule.some(s => s.day === day && startTime < s.endTime && endTime > s.startTime))
+        return alert("Time conflict!");
+
+    schedule.push({ day, subject, startTime, endTime });
+    saveSchedule(schedule);
+    scheduleForm.reset();
+    loadSchedule();
+});
+
+/* ===== EDIT ===== */
+function editSchedule(i) {
+    const schedule = getSchedule();
+    const s = schedule[i];
+
+    const subject = prompt("Edit subject:", s.subject);
+    if (!subject) return;
+
+    const start = prompt("Start time:", s.startTime);
+    const end = prompt("End time:", s.endTime);
+    if (!start || start >= end) return;
+
+    if (schedule.some((x,j) => j !== i && x.day === s.day && start < x.endTime && end > x.startTime))
+        return alert("Conflict detected");
+
+    schedule[i] = { ...s, subject: subject.trim(), startTime: start, endTime: end };
+    saveSchedule(schedule);
+    loadSchedule();
+}
+
+/* ===== DELETE ===== */
+function deleteSchedule(i) {
+    const schedule = getSchedule();
+    if (!confirm(`Delete "${schedule[i].subject}"?`)) return;
+    schedule.splice(i,1);
+    saveSchedule(schedule);
+    loadSchedule();
+}
+
+/* ===== DASHBOARD ===== */
+function updateDashboardSchedule() {
+    const today = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+    todaySchedule.innerText = getSchedule().filter(s => s.day === today).length;
+    if (typeof loadDashboard === 'function') loadDashboard();
 }

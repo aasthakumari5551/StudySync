@@ -1,112 +1,82 @@
-// subjects.js
-// Handles subject management logic
+/* ===== ELEMENTS ===== */
+const subjectForm = document.getElementById("subjectForm");
+const subjectList = document.getElementById("subjectList");
 
-let subjects = [];
+/* ===== LOAD SUBJECTS ===== */
+function loadSubjects() {
+    const subjects = getSubjects();
+    subjectList.innerHTML = "";
 
-// Add new subject
-function addSubject() {
-    const nameInput = document.getElementById("subjectName");
-    const priorityInput = document.getElementById("subjectPriority");
-
-    const name = nameInput.value.trim();
-    const priority = priorityInput.value;
-
-    if (name === "") {
-        alert("Please enter subject name");
-        return;
+    if (!subjects.length) {
+        subjectList.innerHTML = `<p class="empty-msg">No subjects added yet</p>`;
+        return updateDashboard();
     }
 
-    const subject = {
-        id: Date.now(),
-        name: name,
-        priority: priority
-    };
-
-    subjects.push(subject);
-    nameInput.value = "";
-
-    saveSubjects();
-    renderSubjects();
-    updateDashboardSubjects();
-}
-
-// Render subjects
-function renderSubjects() {
-    const list = document.getElementById("subjectList");
-    list.innerHTML = "";
-
-    subjects.forEach(subject => {
-        const li = document.createElement("li");
-
-        let color = "gray";
-        if (subject.priority === "High") color = "red";
-        if (subject.priority === "Medium") color = "orange";
-        if (subject.priority === "Low") color = "green";
-
-        li.style.borderLeft = `5px solid ${color}`;
-
-        li.innerHTML = `
-            <span>${subject.name} (${subject.priority})</span>
-            <div>
-                <button onclick="editSubject(${subject.id})">Edit</button>
-                <button onclick="deleteSubject(${subject.id})">Delete</button>
+    subjects.forEach((s, i) => {
+        subjectList.innerHTML += `
+            <div class="subject-card ${s.priority.toLowerCase()}">
+                <div>
+                    <h4>${s.name}</h4>
+                    <small>${s.priority} Priority</small>
+                </div>
+                <div class="card-actions">
+                    <button onclick="editSubject(${i})">Edit</button>
+                    <button class="danger" onclick="deleteSubject(${i})">Delete</button>
+                </div>
             </div>
         `;
-
-        list.appendChild(li);
     });
+
+    updateDashboard();
 }
 
-// Edit subject
-function editSubject(id) {
-    const subject = subjects.find(s => s.id === id);
-    if (!subject) return;
+/* ===== ADD SUBJECT ===== */
+subjectForm.addEventListener("submit", e => {
+    e.preventDefault();
 
-    const newName = prompt("Edit subject name:", subject.name);
-    if (!newName || newName.trim() === "") return;
+    const name = subjectName.value.trim();
+    if (!name) return;
 
-    const newPriority = prompt(
-        "Edit priority (High / Medium / Low):",
-        subject.priority
-    );
+    const subjects = getSubjects();
+    subjects.push({ name, priority: subjectPriority.value });
 
-    subject.name = newName.trim();
-    subject.priority = ["High", "Medium", "Low"].includes(newPriority)
-        ? newPriority
-        : subject.priority;
+    saveSubjects(subjects);
+    subjectForm.reset();
+    loadSubjects();
+});
 
-    saveSubjects();
-    renderSubjects();
-    updateDashboardSubjects();
+/* ===== DELETE SUBJECT ===== */
+function deleteSubject(i) {
+    const subjects = getSubjects();
+    if (!confirm(`Delete "${subjects[i].name}"?`)) return;
+
+    subjects.splice(i, 1);
+    saveSubjects(subjects);
+    loadSubjects();
 }
 
-// Delete subject
-function deleteSubject(id) {
-    subjects = subjects.filter(subject => subject.id !== id);
-    saveSubjects();
-    renderSubjects();
-    updateDashboardSubjects();
+/* ===== EDIT SUBJECT ===== */
+function editSubject(i) {
+    const subjects = getSubjects();
+    const s = subjects[i];
+
+    const name = prompt("Edit subject name:", s.name);
+    if (!name || !name.trim()) return alert("Name cannot be empty");
+
+    const priority = prompt("Priority (High, Medium, Low):", s.priority);
+    if (!priority) return;
+
+    const p = priority[0].toUpperCase() + priority.slice(1).toLowerCase();
+    if (!["High", "Medium", "Low"].includes(p))
+        return alert("Invalid priority");
+
+    subjects[i] = { name: name.trim(), priority: p };
+    saveSubjects(subjects);
+    loadSubjects();
 }
 
-// Save to LocalStorage
-function saveSubjects() {
-    localStorage.setItem("subjects", JSON.stringify(subjects));
-}
-
-// Load from LocalStorage
-function loadSubjects() {
-    const data = localStorage.getItem("subjects");
-    if (data) {
-        subjects = JSON.parse(data);
-        renderSubjects();
-        updateDashboardSubjects();
-    }
-}
-
-// Update dashboard count
-function updateDashboardSubjects() {
-    const el = document.getElementById("totalSubjects");
-    if (el) {
-        el.textContent = subjects.length;
-    }
+/* ===== DASHBOARD ===== */
+function updateDashboard() {
+    totalSubjects.innerText = getSubjects().length;
+    if (typeof loadDashboard === 'function') loadDashboard();
 }

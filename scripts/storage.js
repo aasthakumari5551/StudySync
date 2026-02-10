@@ -1,25 +1,76 @@
-// storage.js
-// Handles app-level storage utilities
+/* ================= LOCAL STORAGE KEYS ================= */
+const SUBJECT_KEY = "subjects";
+const TASK_KEY = "tasks";
+const SCHEDULE_KEY = "schedule";
+const THEME_KEY = "theme";
 
-// Reset all stored data
-function resetData() {
-    if (confirm("Are you sure you want to reset all data?")) {
-        localStorage.clear();
-        location.reload();
-    }
+/* ================= GENERIC HELPERS ================= */
+function saveData(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
 }
 
-// Export data as JSON file
+function loadData(key) {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+}
+
+/* ================= SUBJECT STORAGE ================= */
+function getSubjects() {
+    return loadData(SUBJECT_KEY);
+}
+
+function saveSubjects(subjects) {
+    saveData(SUBJECT_KEY, subjects);
+}
+
+/* ================= TASK STORAGE ================= */
+function getTasks() {
+    const tasks = loadData(TASK_KEY);
+    // Add IDs to tasks that don't have them (for backward compatibility)
+    let needsSave = false;
+    tasks.forEach(task => {
+        if (!task.id) {
+            task.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+            needsSave = true;
+        }
+    });
+    if (needsSave) saveData(TASK_KEY, tasks);
+    return tasks;
+}
+
+function saveTasks(tasks) {
+    saveData(TASK_KEY, tasks);
+}
+
+/* ================= SCHEDULE STORAGE ================= */
+function getSchedule() {
+    return loadData(SCHEDULE_KEY);
+}
+
+function saveSchedule(schedule) {
+    saveData(SCHEDULE_KEY, schedule);
+}
+
+/* ================= THEME STORAGE ================= */
+function saveTheme(theme) {
+    localStorage.setItem(THEME_KEY, theme);
+}
+
+function loadTheme() {
+    return localStorage.getItem(THEME_KEY);
+}
+
+/* ================= EXPORT DATA ================= */
 function exportData() {
     const data = {
-        subjects: JSON.parse(localStorage.getItem("subjects")) || [],
-        tasks: JSON.parse(localStorage.getItem("tasks")) || [],
-        schedule: JSON.parse(localStorage.getItem("schedule")) || [],
-        theme: localStorage.getItem("theme") || "light"
+        subjects: getSubjects(),
+        tasks: getTasks(),
+        schedule: getSchedule()
     };
 
-    const dataStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json"
+    });
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -27,18 +78,10 @@ function exportData() {
     link.click();
 }
 
-// Toggle dark / light theme with persistence
-function toggleTheme() {
-    document.body.classList.toggle("dark-theme");
-
-    const isDark = document.body.classList.contains("dark-theme");
-    localStorage.setItem("theme", isDark ? "dark" : "light");
-}
-
-// Apply saved theme on load
-(function applySavedTheme() {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-        document.body.classList.add("dark-theme");
+/* ================= RESET DATA ================= */
+function resetData() {
+    if (confirm("Are you sure you want to delete all data?")) {
+        localStorage.clear();
+        location.reload();
     }
-})();
+}
